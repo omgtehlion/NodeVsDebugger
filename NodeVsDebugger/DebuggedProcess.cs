@@ -50,6 +50,13 @@ namespace NodeVsDebugger
             dbgWorkDir = Path.GetDirectoryName(exe);
             ParseConfig(args);
 
+            if (nodeExe == null || !File.Exists(nodeExe)) {
+                System.Windows.Forms.MessageBox.Show("ERROR: node.exe not found.\r\n\r\n" +
+                    "Please make sure it is on your %PATH% or installed in default location.\r\n\r\n" +
+                    "You can download a copy of Node at http://nodejs.org/", "NodeVsDebugger");
+                throw new ArgumentException("node.exe not found");
+            }
+
             proc = new Process();
             if (!dbgConnectOnly) {
                 proc.StartInfo = new ProcessStartInfo {
@@ -66,8 +73,13 @@ namespace NodeVsDebugger
                     CreateNoWindow = true,
                 };
             }
-            proc.Start();
-            Id = proc.Id;
+            try {
+                proc.Start();
+                Id = proc.Id;
+            } catch (Exception ex) {
+                System.Windows.Forms.MessageBox.Show("ERROR: starting process\r\n" + ex, "NodeVsDebugger");
+                throw;
+            }
 
             try {
                 dbg = new V8DebugSession(dbgHost, dbgPort);
@@ -75,7 +87,7 @@ namespace NodeVsDebugger
                 dbg.Closed += dbg_Closed;
                 dbg.StartReading();
             } catch (Exception ex) {
-                System.Windows.Forms.MessageBox.Show("ERROR:\r\n" + ex, "NodeVsDebugger");
+                System.Windows.Forms.MessageBox.Show("ERROR connecting to debuggee:\r\n" + ex, "NodeVsDebugger");
                 throw;
             }
         }
