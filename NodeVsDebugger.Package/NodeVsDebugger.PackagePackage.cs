@@ -22,6 +22,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace NodeVsDebugger_Package
 {
@@ -283,7 +284,7 @@ namespace NodeVsDebugger_Package
 
             var info = new VsDebugTargetInfo {
                 cbSize = (uint)Marshal.SizeOf(typeof(VsDebugTargetInfo)),
-                dlo = DEBUG_LAUNCH_OPERATION.DLO_CreateProcess,
+                dlo = DEBUG_LAUNCH_OPERATION.DLO_Custom,
 
                 bstrExe = exe,
                 bstrCurDir = Path.GetDirectoryName(exe),
@@ -298,6 +299,7 @@ namespace NodeVsDebugger_Package
             Marshal.StructureToPtr(info, pInfo, false);
 
             try {
+                Debug.WriteLine("{0:HH:mm:ss.ff} {1}", DateTime.Now, "LaunchDebugTargets");
                 return dbg.LaunchDebugTargets(1, pInfo);
             } finally {
                 if (pInfo != IntPtr.Zero) {
