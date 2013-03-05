@@ -318,7 +318,6 @@ namespace NodeVsDebugger_Package
             Marshal.StructureToPtr(info, pInfo, false);
 
             try {
-                Debug.WriteLine("{0:HH:mm:ss.ff} {1}", DateTime.Now, "LaunchDebugTargets");
                 return dbg.LaunchDebugTargets(1, pInfo);
             } finally {
                 if (pInfo != IntPtr.Zero) {

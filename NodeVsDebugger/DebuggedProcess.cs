@@ -50,15 +50,15 @@ namespace NodeVsDebugger
             dbgWorkDir = Path.GetDirectoryName(exe);
             ParseConfig(args);
 
-            if (nodeExe == null || !File.Exists(nodeExe)) {
-                System.Windows.Forms.MessageBox.Show("ERROR: node.exe not found.\r\n\r\n" +
-                    "Please make sure it is on your %PATH% or installed in default location.\r\n\r\n" +
-                    "You can download a copy of Node at http://nodejs.org/", "NodeVsDebugger");
-                throw new ArgumentException("node.exe not found");
-            }
-
             proc = new Process();
             if (!dbgConnectOnly) {
+                if (nodeExe == null || !File.Exists(nodeExe)) {
+                    System.Windows.Forms.MessageBox.Show("ERROR: node.exe not found.\r\n\r\n" +
+                        "Please make sure it is on your %PATH% or installed in default location.\r\n\r\n" +
+                        "You can download a copy of Node at http://nodejs.org/", "NodeVsDebugger");
+                    throw new ArgumentException("node.exe not found");
+                }
+
                 proc.StartInfo = new ProcessStartInfo {
                     Arguments = string.Format("--debug-brk={0} {1}", dbgPort, main),
                     FileName = nodeExe,
@@ -80,7 +80,10 @@ namespace NodeVsDebugger
                 System.Windows.Forms.MessageBox.Show("ERROR: starting process\r\n" + ex, "NodeVsDebugger");
                 throw;
             }
+        }
 
+        public void Attach()
+        {
             try {
                 dbg = new V8DebugSession(dbgHost, dbgPort);
                 dbg.Connected += dbg_Connected;
@@ -94,38 +97,35 @@ namespace NodeVsDebugger
 
         private void ParseConfig(string confText)
         {
-            mappings = new ScriptMapping();
             if (confText == null) {
+                mappings = new ScriptMapping();
                 nodeExe = Tools.GetDefaultNode();
                 return;
             }
             var conf = JsonConvert.DeserializeObject(confText) as JObject;
             if (conf == null)
-                throw new ArgumentException();
+                throw new ArgumentException("cannot deserialize config");
 
-            dbgHost = (string)conf["host"] ?? dbgHost;
             if (conf["port"] != null)
                 dbgPort = (int)conf["port"];
-
-            main = (string)conf["main"] ?? main;
-            if (!Path.IsPathRooted(main))
-                main = Path.Combine(dbgWorkDir, main);
 
             var mappingConf = conf["mappings"] as JObject;
             if (mappingConf != null)
                 mappings = new ScriptMapping(mappingConf);
 
-            nodeExe = (string)conf["node"];
             switch ((string)conf["mode"]) {
-                case "off":
-                    throw new ArgumentException("conf = off");
-                case "connect":
-                    dbgConnectOnly = true;
-                    break;
-                default:
-                    nodeExe = nodeExe ?? Tools.GetDefaultNode();
+                case null:
+                case "run":
+                    main = (string)conf["main"] ?? main;
+                    nodeExe = (string)conf["node"] ?? Tools.GetDefaultNode();
                     dbgHost = "localhost";
                     break;
+                case "connect":
+                    dbgConnectOnly = true;
+                    dbgHost = (string)conf["host"] ?? dbgHost;
+                    break;
+                default:
+                    throw new ArgumentException("mode = " + (string)conf["mode"]);
             }
         }
 
@@ -314,7 +314,7 @@ namespace NodeVsDebugger
                 attachEvent = null;
                 return;
             }
-            if (!attachEvent.WaitOne(15 * 1000))
+            if (!attachEvent.WaitOne(10 * 1000))
                 throw new Exception("cannot attach");
         }
 

@@ -109,6 +109,7 @@ namespace NodeVsDebugger
                         return Constants.E_FAIL;
                     }
 
+                    m_debuggedProcess.Attach();
                     m_debuggedProcess.WaitForAttach();
                     m_pollThread.SetDebugProcess(m_debuggedProcess);
                 }
