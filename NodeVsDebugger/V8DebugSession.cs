@@ -142,7 +142,7 @@ namespace NodeVsDebugger
             RequestRaw(command, JsonConvert.SerializeObject(arguments), callback);
         }
 
-        public JObject RequestSync<T>(string command, T arguments, int timeoutMs = Timeout.Infinite)
+        public JObject RequestSync<T>(string command, T arguments, int timeoutMs = 60 * 1000)
         {
             var evt = new ManualResetEvent(false);
             JObject result = null;

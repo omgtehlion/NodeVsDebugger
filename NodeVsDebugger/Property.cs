@@ -136,7 +136,7 @@ namespace NodeVsDebugger
                     const string prefix = "... (length: ";
                     var idx = s.IndexOf(prefix, s.Length - prefix.Length - 7, StringComparison.Ordinal);
                     if (idx != -1) {
-                        var sLen = s.Substring(idx + prefix.Length);
+                        var sLen = s.Substring(idx + prefix.Length).TrimEnd(')');
                         int iLen;
                         if (int.TryParse(sLen, out iLen)) {
                             if (iLen > FullStringLength)
