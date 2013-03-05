@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="967d54f7-9e49-43e3-a0eb-eb2d277c9e92" Version="0.1" Language="en-US" Publisher="anton@drachev.com" />
+    <Identity Id="967d54f7-9e49-43e3-a0eb-eb2d277c9e92" Version="0.1.1" Language="en-US" Publisher="anton@drachev.com" />
     <DisplayName>Node.js Debugging Support</DisplayName>
     <Description>Adds support for Node.js debugging to Visual Studio. Supports debugging of projects and standalone scripts.</Description>
     <MoreInfo>https://github.com/omgtehlion/NodeVsDebugger</MoreInfo>
