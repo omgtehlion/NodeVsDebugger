@@ -219,41 +219,60 @@ namespace NodeVsDebugger_Package
             var error = GetActiveProjectDir(out dir);
             if (error != null) {
                 WriteOutput("ERROR: " + error);
-                return false;
+                return true;
             }
-            var confFile = Path.Combine(dir, ".nodevsdbg");
-            if (File.Exists(confFile)) {
-                try {
-                    // read and parse config now to detect errors early:
-                    var json = JsonConvert.DeserializeObject(File.ReadAllText(confFile)) as JObject;
-                    if (json == null) {
-                        WriteOutput("ERROR: invalid contents of '.nodevsdbg' configuration file");
-                        return true;
-                    }
-                    if ((string)json["mode"] != "off") {
-                        //validate main module
-                        if ((string)json["mode"] != "connect") {
-                            var main = (string)json["main"];
-                            if (!Path.IsPathRooted(main))
-                                main = Path.Combine(dir, main);
-                            if (!File.Exists(main)) {
-                                WriteOutput("ERROR: main module not found. Specified: " +
-                                    JsonConvert.SerializeObject(json["main"]));
-                                return true;
-                            }
-                        }
-                        LaunchDebugTarget(confFile, JsonConvert.SerializeObject(json));
-                        return true;
-                    }
-                } catch (JsonReaderException ex) {
-                    WriteOutput("ERROR: malformed config file. " + ex.Message);
-                    return true;
-                } catch (Exception ex) {
-                    WriteOutput("ERROR: " + ex);
-                    return true;
-                }
+            JObject conf;
+            error = ReadAndValidateConfig(dir, out conf);
+            if (error != null) {
+                WriteOutput("ERROR: " + error);
+                return true;
+            }
+            if (conf != null) {
+                LaunchDebugTarget(Path.Combine(dir, ".nodevsdbg"), JsonConvert.SerializeObject(conf));
+                return true;
             }
             return false;
+        }
+
+        /// <summary></summary>
+        /// <param name="dir"></param>
+        /// <param name="conf">parsed and avalidated config, or null if not does not exist or disabled</param>
+        /// <returns>error text</returns>
+        private string ReadAndValidateConfig(string dir, out JObject conf)
+        {
+            conf = null;
+            var confFile = Path.Combine(dir, ".nodevsdbg");
+            if (!File.Exists(confFile))
+                return null;
+            try {
+                // read and parse config now to detect errors early:
+                conf = JsonConvert.DeserializeObject(File.ReadAllText(confFile)) as JObject;
+                if (conf == null)
+                    return "invalid contents of '.nodevsdbg' configuration file";
+                switch ((string)conf["mode"]) {
+                    case null:
+                    case "run":
+                        //validate main module
+                        var main = (string)conf["main"];
+                        if (main != null && !Path.IsPathRooted(main))
+                            conf["main"] = main = Path.Combine(dir, main);
+                        if (main == null || !File.Exists(main))
+                            return "main module not found. Specified: " + JsonConvert.SerializeObject(conf["main"]);
+                        break;
+                    case "connect":
+                        break;
+                    case "off":
+                        conf = null;
+                        return null;
+                    default:
+                        return "unknown \"mode\": " + JsonConvert.SerializeObject(conf["mode"]);
+                }
+            } catch (JsonReaderException ex) {
+                return "malformed config file. " + ex.Message;
+            } catch (Exception ex) {
+                return ex.ToString();
+            }
+            return null;
         }
 
         private void MenuItemCallbackDocument(object sender, EventArgs e)
