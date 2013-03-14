@@ -25,6 +25,7 @@ namespace NodeVsDebugger
         public string m_typeName;
         public string m_value;
 
+        public int m_frameId;
         public int FullStringLength;
         string m_fullString;
         public int m_valueHandle;
@@ -67,10 +68,11 @@ namespace NodeVsDebugger
             DontDelete = 1 << 2
         }
 
-        public Property(JObject jObject, DebuggedProcess proc, string parentName = null)
+        public Property(JObject jObject, DebuggedProcess proc, int frameId, string parentName = null)
         {
             this.jObject = jObject;
             this.proc = proc;
+            this.m_frameId = frameId;
 
             m_name = (string)jObject["name"];
             m_fullName = m_name;
@@ -160,7 +162,7 @@ namespace NodeVsDebugger
         {
             var valueData = proc.dbg.LookupRef(m_valueHandle, 600);
             var props = (JArray)valueData["properties"];
-            return props.Select(prop => new Property((JObject)prop, proc, m_fullName));
+            return props.Select(prop => new Property((JObject)prop, proc, m_frameId, m_fullName));
         }
 
         internal string GetFullString(int maxChars)
@@ -173,6 +175,13 @@ namespace NodeVsDebugger
             if (maxChars >= m_fullString.Length)
                 return m_fullString;
             return m_fullString.Substring(0, maxChars);
+        }
+
+        internal void SetValue(string pszValue, out string error)
+        {
+            var newVal = proc.Evaluate(m_frameId, m_fullName + " = " + pszValue, out error);
+            if (error == null)
+                FillValue((JObject)newVal.jObject["value"]);
         }
     }
 }

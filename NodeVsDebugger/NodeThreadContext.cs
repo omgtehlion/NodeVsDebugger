@@ -38,8 +38,8 @@ namespace NodeVsDebugger
             line = (int)frame["line"];
             column = (int)frame["column"];
 
-            Args = frame["arguments"].Select(x => new Property((JObject)x, proc)).ToArray();
-            Locals = frame["locals"].Select(x => new Property((JObject)x, proc)).ToArray();
+            Args = frame["arguments"].Select(x => new Property((JObject)x, proc, index)).ToArray();
+            Locals = frame["locals"].Select(x => new Property((JObject)x, proc, index)).ToArray();
         }
     }
 

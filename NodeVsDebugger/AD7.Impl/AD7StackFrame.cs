@@ -276,7 +276,7 @@ namespace NodeVsDebugger
                     ppExpr = new AD7Property(localOrArg);
                     return Constants.S_OK;
                 }
-                var result = m_engine.DebuggedProcess.Evaluate(m_threadContext, pszCode, out pbstrError);
+                var result = m_engine.DebuggedProcess.Evaluate(m_threadContext.index, pszCode, out pbstrError);
                 if (result != null) {
                     ppExpr = new AD7Property(result);
                     return Constants.S_OK;

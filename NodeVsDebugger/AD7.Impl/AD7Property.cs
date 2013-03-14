@@ -50,7 +50,7 @@ namespace NodeVsDebugger
 
             if (dwFields.HasFlag(DIF.DEBUGPROP_INFO_ATTRIB)) {
                 // The sample does not support writing of values displayed in the debugger, so mark them all as read-only.
-                propertyInfo.dwAttrib = enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY;
+                propertyInfo.dwAttrib = 0;//                enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY;
                 if (m_variableInformation.IsString)
                     propertyInfo.dwAttrib |= enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_RAW_STRING;
                 if (m_variableInformation.HasChildren)
@@ -232,7 +232,8 @@ namespace NodeVsDebugger
 
         int IDebugProperty3.SetValueAsStringWithError(string pszValue, uint dwRadix, uint dwTimeout, out string errorString)
         {
-            throw new NotImplementedException();
+            m_variableInformation.SetValue(pszValue, out errorString);
+            return errorString == null ? Constants.S_OK : Constants.S_FALSE;
         }
 
         #endregion

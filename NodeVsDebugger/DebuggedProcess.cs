@@ -263,13 +263,13 @@ namespace NodeVsDebugger
             dbg.Request("continue", new { stepaction, stepcount = 1 });
         }
 
-        internal Property Evaluate(NodeThreadContext context, string code, out string error)
+        internal Property Evaluate(int frameId, string code, out string error)
         {
-            var result = dbg.RequestSync("evaluate", new { expression = code, frame = context.index });
+            var result = dbg.RequestSync("evaluate", new { expression = code, frame = frameId });
             if ((bool)result["success"]) {
-                error = "";
+                error = null;
                 var fakeVar = new JObject(new JProperty("name", code), new JProperty("value", result["body"]));
-                return new Property(fakeVar, this);
+                return new Property(fakeVar, this, frameId);
             }
             error = (string)result["message"];
             return null;
