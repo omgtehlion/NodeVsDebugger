@@ -105,7 +105,7 @@ namespace NodeVsDebugger
                     break;
                 case "number":
                 case "boolean":
-                    m_value = JsonConvert.SerializeObject(val["value"]);
+                    m_value = ((string)val["text"]) ?? JsonConvert.SerializeObject(val["value"]);
                     break;
                 case "string":
                     m_fullString = (string)val["value"];
