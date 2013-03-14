@@ -118,6 +118,14 @@ namespace NodeVsDebugger
                     break;
                 case "regexp":
                     m_value = (string)val["text"];
+                    foreach (var x in GetChildren()) {
+                        if (x.m_name == "global" && x.m_value == "true")
+                            m_value += "g";
+                        if (x.m_name == "ignoreCase" && x.m_value == "true")
+                            m_value += "i";
+                        if (x.m_name == "multiline" && x.m_value == "true")
+                            m_value += "m";
+                    }
                     break;
                 default:
                     throw new NotImplementedException("VariableInformation(" + m_typeName);
