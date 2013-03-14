@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace NodeVsDebugger
@@ -100,6 +102,7 @@ namespace NodeVsDebugger
             if (confText == null) {
                 mappings = new ScriptMapping();
                 nodeExe = Tools.GetDefaultNode();
+                dbgPort = RandomizePort();
                 return;
             }
             var conf = JsonConvert.DeserializeObject(confText) as JObject;
@@ -127,6 +130,19 @@ namespace NodeVsDebugger
                 default:
                     throw new ArgumentException("mode = " + (string)conf["mode"]);
             }
+        }
+
+        private int RandomizePort()
+        {
+            var port = 0;
+            // node.js requires debug_port > 1024 && debug_port < 65536
+            while (port <= 1024 || port >= 65536) {
+                var listener = new TcpListener(IPAddress.Loopback, 0);
+                listener.Start();
+                port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                listener.Stop();
+            }
+            return port;
         }
 
         void dbg_Closed()
