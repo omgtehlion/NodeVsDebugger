@@ -1,0 +1,36 @@
+/*****************************************************************************
+ * This is configuration file for NodeVsDebugger
+ * Configuration is stored in JSON format with following fields:
+ *
+ *  "mode": "run"(default) / "connect" / "off"
+ *    - when "run" is specified, you should provide main module
+ *      for debugged program in the field "main".
+ *    - "connect" means connection to already started node
+ *      using this mode you can debug process on a remote machine.
+ *    - "off" temporarily disable node.js debugging for this project.
+ *
+ *  "host": "localhost"(default)
+ *  "port": 5858(default)
+ *    - where to connect when attaching to node instance.
+ *      note: "host" is ignored when mode="run"
+ *
+ *  "main": "path/to/app.js"(no default value)
+ *    - path to main module of your program (entry point)
+ *      can be absolute or relative to this config file.
+ *      This field is required when debugging locally and ignored otherwise.
+ *
+ *  "node": "c:\\path\\to\\node.exe"
+ *    - path to node.js runtime executable.
+ *      If not specified, node.exe should be on %PATH% or default location.
+ *      This field is optional when debugging locally and ignored otherwise.
+ *
+ *  "mappings": { "X:\\local\\path": "/remote/path1", "Y:\\": "/remote2" }
+ *    - file system mappings, useful when debugging remote instance.
+ *
+ ****************************************************************************/
+{
+  "mode": "connect",
+  "main": "main.js",
+  "host": "127.0.0.1",
+  "port": 5858
+}
