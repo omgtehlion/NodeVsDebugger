@@ -113,8 +113,7 @@ namespace NodeVsDebugger
                 dbgPort = (int)conf["port"];
 
             var mappingConf = conf["mappings"] as JObject;
-            if (mappingConf != null)
-                mappings = new ScriptMapping(mappingConf);
+            mappings = mappingConf != null ? new ScriptMapping(mappingConf) : new ScriptMapping();
 
             switch ((string)conf["mode"]) {
                 case null:
