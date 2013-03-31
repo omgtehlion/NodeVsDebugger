@@ -68,6 +68,7 @@
     <Compile Include="AD7.Impl\AD7StackFrame.cs" />
     <Compile Include="AD7.Impl\AD7Thread.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="MyLogger.cs" />
     <Compile Include="NodeVsDebuggerRegistrationAttribute.cs" />
     <Compile Include="DebuggedProcess.cs" />
     <Compile Include="DebuggedThread.cs" />

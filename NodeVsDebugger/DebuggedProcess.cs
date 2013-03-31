@@ -45,6 +45,8 @@ namespace NodeVsDebugger
 
         public DebuggedProcess(string exe, string args, WorkerThread pollThread, EngineCallback callback)
         {
+            MyLogger.Trace("> DebuggedProcess");
+
             Callback = callback;
             m_pollThread = pollThread;
             tempScriptCache = new TempScriptCache();
@@ -62,7 +64,7 @@ namespace NodeVsDebugger
                 }
 
                 proc.StartInfo = new ProcessStartInfo {
-                    Arguments = string.Format("--debug-brk={0} {1}", dbgPort, main),
+                    Arguments = string.Format("--debug-brk={0} \"{1}\"", dbgPort, main),
                     FileName = nodeExe,
                     UseShellExecute = false,
                     WorkingDirectory = dbgWorkDir,
@@ -82,10 +84,12 @@ namespace NodeVsDebugger
                 System.Windows.Forms.MessageBox.Show("ERROR: starting process\r\n" + ex, "NodeVsDebugger");
                 throw;
             }
+            MyLogger.Trace("< DebuggedProcess");
         }
 
         public void Attach()
         {
+            MyLogger.Trace("> DebuggedProcess.Attach");
             try {
                 dbg = new V8DebugSession(dbgHost, dbgPort);
                 dbg.Connected += dbg_Connected;
@@ -95,14 +99,17 @@ namespace NodeVsDebugger
                 System.Windows.Forms.MessageBox.Show("ERROR connecting to debuggee:\r\n" + ex, "NodeVsDebugger");
                 throw;
             }
+            MyLogger.Trace("< DebuggedProcess.Attach");
         }
 
         private void ParseConfig(string confText)
         {
+            MyLogger.Trace("> DebuggedProcess.ParseConfig");
             if (confText == null) {
                 mappings = new ScriptMapping();
                 nodeExe = Tools.GetDefaultNode();
                 dbgPort = RandomizePort();
+                MyLogger.Trace("<1 DebuggedProcess.ParseConfig");
                 return;
             }
             var conf = JsonConvert.DeserializeObject(confText) as JObject;
@@ -129,6 +136,7 @@ namespace NodeVsDebugger
                 default:
                     throw new ArgumentException("mode = " + (string)conf["mode"]);
             }
+            MyLogger.Trace("<2 DebuggedProcess.ParseConfig");
         }
 
         private int RandomizePort()
@@ -141,17 +149,20 @@ namespace NodeVsDebugger
                 port = ((IPEndPoint)listener.LocalEndpoint).Port;
                 listener.Stop();
             }
+            MyLogger.Trace("DebuggedProcess.RandomizePort = " + port);
             return port;
         }
 
         void dbg_Closed()
         {
+            MyLogger.Trace("DebuggedProcess.dbg_Closed: " + dbg.CloseReason);
             m_pollThread.RunOperation(() => Callback.OnProcessExit(0));
             Cleanup();
         }
 
         private void Cleanup()
         {
+            MyLogger.Trace("DebuggedProcess.Cleanup");
             if (proc != null && !proc.HasExited)
                 proc.Kill();
             if (tempScriptCache != null)
@@ -160,6 +171,7 @@ namespace NodeVsDebugger
 
         void dbg_Connected(Dictionary<string, string> obj)
         {
+            MyLogger.Trace("DebuggedProcess.dbg_Connected");
             attached = true;
             if (attachEvent != null)
                 attachEvent.Set();
@@ -170,6 +182,7 @@ namespace NodeVsDebugger
 
         void dbg_EventReceived(string evt, JToken body)
         {
+            MyLogger.Trace("> DebuggedProcess.dbg_EventReceived evt = " + evt + "\r\n\tbody = " + body);
             switch (evt) {
                 case "break":
                 case "exception":
@@ -180,25 +193,30 @@ namespace NodeVsDebugger
                     Callback.OnModuleLoad(mod);
                     break;
             }
+            MyLogger.Trace("< DebuggedProcess.dbg_EventReceived");
         }
 
         public void Break()
         {
+            MyLogger.Trace("DebuggedProcess.Break");
             Callback.OnAsyncBreakComplete(Threads[0]);
         }
         public void Continue(DebuggedThread thread)
         {
+            MyLogger.Trace("DebuggedProcess.Continue");
             dbg.Request("continue", "");
         }
 
         public void Detach()
         {
+            MyLogger.Trace("DebuggedProcess.Detach");
             Callback.OnProgramDestroy(0);
             dbg.Request("disconnect", "");
             dbg.Close();
         }
         public void Execute(DebuggedThread thread)
         {
+            MyLogger.Trace("DebuggedProcess.Execute");
             dbg.Request("continue", "");
         }
         public List<NodeScript> Modules = new List<NodeScript>();
@@ -213,16 +231,19 @@ namespace NodeVsDebugger
         }
         public void ResumeFromLaunch()
         {
+            MyLogger.Trace("DebuggedProcess.ResumeFromLaunch");
             dbg.Request("continue", "");
         }
         public void Terminate()
         {
+            MyLogger.Trace("DebuggedProcess.Terminate");
             dbg.RequestSync("evaluate", new { expression = "process.exit(1);", global = true }, 500);
             Detach();
         }
 
         internal void DoStackWalk(DebuggedThread debuggedThread)
         {
+            MyLogger.Trace("< DebuggedProcess.DoStackWalk");
             debuggedThread.StackFrames = new List<NodeThreadContext>();
             var frameId = 0;
             var totalFrames = int.MaxValue;
@@ -232,6 +253,7 @@ namespace NodeVsDebugger
                     break;
                 frameId += 5;
             }
+            MyLogger.Trace("> DebuggedProcess.DoStackWalk");
         }
 
         private bool FetchFrames(DebuggedThread debuggedThread, int fromFrame, int count, ref int totalFrames)
@@ -250,6 +272,7 @@ namespace NodeVsDebugger
 
         internal void Step(DebuggedThread debuggedThread, Microsoft.VisualStudio.Debugger.Interop.enum_STEPKIND sk)
         {
+            MyLogger.Trace("DebuggedProcess.Step");
             var stepaction = "next";
             switch (sk) {
                 case Microsoft.VisualStudio.Debugger.Interop.enum_STEPKIND.STEP_INTO:
@@ -264,6 +287,7 @@ namespace NodeVsDebugger
 
         internal Property Evaluate(int frameId, string code, out string error)
         {
+            MyLogger.Trace("DebuggedProcess.Evaluate code = " + code);
             var result = dbg.RequestSync("evaluate", new { expression = code, frame = frameId });
             if ((bool)result["success"]) {
                 error = null;
@@ -276,6 +300,7 @@ namespace NodeVsDebugger
 
         internal int SetBreakpoint(string documentName, uint line, uint column)
         {
+            MyLogger.Trace("> DebuggedProcess.SetBreakpoint @" + documentName + ":" + line);
             documentName = LocalFileToNodeScript(documentName);
             var resp = dbg.RequestSync("setbreakpoint", new {
                 type = "script",
@@ -284,6 +309,7 @@ namespace NodeVsDebugger
                 column,
                 enabled = true,
             });
+            MyLogger.Trace("< DebuggedProcess.SetBreakpoint");
             if ((bool)resp["success"]) {
                 return (int)resp["body"]["breakpoint"];
             }
@@ -319,18 +345,22 @@ namespace NodeVsDebugger
 
         public void RemoveBreakpoint(int breakpointId)
         {
+            MyLogger.Trace("DebuggedProcess.RemoveBreakpoint");
             dbg.RequestSync("clearbreakpoint", new { breakpoint = breakpointId });
         }
 
         internal void WaitForAttach()
         {
+            MyLogger.Trace("> DebuggedProcess.WaitForAttach");
             attachEvent = new ManualResetEvent(false);
             if (attached) {
                 attachEvent = null;
+                MyLogger.Trace("<1 DebuggedProcess.WaitForAttach");
                 return;
             }
             if (!attachEvent.WaitOne(10 * 1000))
                 throw new Exception("cannot attach");
+            MyLogger.Trace("<2 DebuggedProcess.WaitForAttach");
         }
 
         internal JObject LookupRef(JToken jToken, int timeoutMs = 600)

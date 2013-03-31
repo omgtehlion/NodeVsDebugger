@@ -39,6 +39,7 @@ namespace NodeVsDebugger
 
         public static int UnexpectedException(Exception e)
         {
+            MyLogger.Trace("UnexpectedException " + e);
             if (e is ComponentException)
                 return e.HResult;
             Debug.Fail("Unexpected exception");

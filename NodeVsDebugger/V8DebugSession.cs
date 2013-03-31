@@ -204,5 +204,7 @@ namespace NodeVsDebugger
         {
             connection.StartReading();
         }
+
+        public string CloseReason { get { return connection.CloseReason; } }
     }
 }
