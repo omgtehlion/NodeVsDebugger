@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -38,10 +39,14 @@ namespace NodeVsDebugger
 
         public bool IsClosed { get { return isClosed; } }
 
+        NodeVsDebugger.MyLogger.Logger log;
+
         public V8Connection(Stream port)
         {
             this.port = port;
             reader = new StreamReader(port, latin1);
+            log = new NodeVsDebugger.MyLogger.Logger("json", Encoding.UTF8, true);
+            log.WriteRaw("{\"started\": \"" + log.Created.ToString("yyyy.MM.dd HH:mm:ss.fff") + "\", \"messages\": [");
         }
 
         void OnReceived(Dictionary<string, string> headers, JObject body)
@@ -51,8 +56,16 @@ namespace NodeVsDebugger
                     Connected(headers);
                 isFirstMsg = false;
             } else if (DataReceived != null) {
+                LogMessage("in", body.ToString());
                 DataReceived.Invoke(headers, body);
             }
+        }
+
+        private void LogMessage(string direction, string body)
+        {
+            log.WriteRaw("{\"type\": \"" + direction + "\", \"at\": \"" +
+                log.Elapsed.ToString(CultureInfo.InvariantCulture) +
+                "\", \"body\": " + body + "},");
         }
 
         public void SendData(string body)
@@ -62,6 +75,7 @@ namespace NodeVsDebugger
                 lock (this) {
                     if (isClosed)
                         return;
+                    LogMessage("out", body);
                     var headers = latin1.GetBytes(string.Format("Content-Length: {0}\r\n\r\n", buff.Length));
                     port.Write(headers, 0, headers.Length);
                     port.Write(buff, 0, buff.Length);
