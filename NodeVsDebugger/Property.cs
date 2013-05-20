@@ -142,6 +142,8 @@ namespace NodeVsDebugger
             if (len != null) {
                 FullStringLength = (int)len;
             } else {
+                if (s.Length == 0)
+                    return;
                 if (s[s.Length - 1] == ')') {
                     const string prefix = "... (length: ";
                     var idx = s.IndexOf(prefix, s.Length - prefix.Length - 7, StringComparison.Ordinal);
