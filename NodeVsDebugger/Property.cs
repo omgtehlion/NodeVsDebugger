@@ -151,7 +151,7 @@ namespace NodeVsDebugger
                         var sLen = s.Substring(idx + prefix.Length).TrimEnd(')');
                         int iLen;
                         if (int.TryParse(sLen, out iLen)) {
-                            if (iLen > FullStringLength)
+                            if (iLen > idx)
                                 FullStringLength = iLen;
                         }
                     }
