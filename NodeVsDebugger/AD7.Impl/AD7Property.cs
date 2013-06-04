@@ -85,7 +85,7 @@ namespace NodeVsDebugger
             ppEnum = null;
             try {
                 ppEnum = new AD7PropertyEnum(m_variableInformation
-                    .GetChildren().OrderBy(v => v.m_name)
+                    .GetChildren().OrderBy(v => v.m_name, StrCmpLogical.Instance)
                     .Select(v => new AD7Property(v).ConstructDebugPropertyInfo(dwFields))
                 );
                 return Constants.S_OK;
