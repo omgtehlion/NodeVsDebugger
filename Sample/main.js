@@ -25,7 +25,8 @@ var ಠ_ಠ = {
     u: undefined,
     f1: f1,
     c1: new Class1(),
-    "$#&#@$& ": "asdasd"
+    "$#&#@$& ": "asdasd",
+    d: new Date()
 };
 ಠ_ಠ.__defineGetter__('g', function() { return 'g'; });
 ಠ_ಠ.__defineSetter__('g', function() { });
@@ -38,6 +39,7 @@ for (var i = 0; i < 300; i++) {
     longStr += (i % 10).toString();
     longStrs.push(longStr);
 }
+
 
 var included = require("./included");
 included.onload();

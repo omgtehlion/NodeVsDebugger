@@ -28,6 +28,7 @@ namespace NodeVsDebugger
         public int m_frameId;
         public int FullStringLength;
         string m_fullString;
+        string m_className;
         public int m_valueHandle;
         private JObject jObject;
         DebuggedProcess proc;
@@ -37,6 +38,7 @@ namespace NodeVsDebugger
 
         public bool IsString { get { return m_typeName == "string"; } }
         public bool IsMethod { get { return m_typeName == "function"; } }
+        public bool IsArray { get { return m_className == "Array"; } }
         public bool HasChildren { get { return m_typeName == "object" || m_typeName == "function" || m_typeName == "regexp"; } }
         public bool IsPrivate { get { return Attributes.HasFlag(PropertyAttribute.DontEnum); } }
         public bool HasAccessor { get { return Types.HasFlag(PropertyType.CALLBACKS) && m_typeName != "function"; } }
@@ -99,7 +101,10 @@ namespace NodeVsDebugger
             m_typeName = (string)val["type"];
             switch (m_typeName) {
                 case "object":
-                    m_value = (string)val["text"];
+                    m_value = (string)val["text"] ?? ("#<" + (string)val["className"] + ">");
+                    m_className = (string)val["className"];
+                    if (m_value == null && m_className != null)
+                        m_value = "#<" + m_className + ">";
                     break;
                 case "null":
                 case "undefined":

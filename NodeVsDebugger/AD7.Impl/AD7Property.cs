@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Debugger.Interop;
 namespace NodeVsDebugger
 {
     using DIF = enum_DEBUGPROP_INFO_FLAGS;
+    using System.Collections.Generic;
 
     // An implementation of IDebugProperty2
     // This interface represents a stack frame property, a program document property, or some other property. 
@@ -76,6 +77,19 @@ namespace NodeVsDebugger
             return propertyInfo;
         }
 
+        private sealed class ArrayPropComparerClass : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                if (x == "length")
+                    return -1;
+                if (y == "length")
+                    return 1;
+                return StrCmpLogical.CompareStatic(x, y);
+            }
+        }
+        private static readonly IComparer<string> ArrayPropComparer = new ArrayPropComparerClass();
+
         #region IDebugProperty2 Members
 
         // Enumerates the children of a property. This provides support for dereferencing pointers, displaying members of an array, or fields of a class or struct.
@@ -84,8 +98,10 @@ namespace NodeVsDebugger
         {
             ppEnum = null;
             try {
+                var comparer = m_variableInformation.IsArray ? ArrayPropComparer : StrCmpLogical.Instance;
                 ppEnum = new AD7PropertyEnum(m_variableInformation
-                    .GetChildren().OrderBy(v => v.m_name, StrCmpLogical.Instance)
+                    .GetChildren()
+                    .OrderBy(v => v.m_name, comparer)
                     .Select(v => new AD7Property(v).ConstructDebugPropertyInfo(dwFields))
                 );
                 return Constants.S_OK;
