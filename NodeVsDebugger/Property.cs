@@ -169,10 +169,11 @@ namespace NodeVsDebugger
 
         internal string GetFullString(int maxChars)
         {
-            if (FullStringLength > m_fullString.Length) {
+            if (FullStringLength != m_fullString.Length) {
                 // we have to fetch actual string
                 var valueData = proc.dbg.LookupFullString(m_valueHandle);
                 FillValue(valueData);
+                FullStringLength = m_fullString.Length;
             }
             if (maxChars >= m_fullString.Length)
                 return m_fullString;

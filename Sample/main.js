@@ -32,6 +32,13 @@ var ಠ_ಠ = {
 
 console.log(", World!");
 
+var longStr = "";
+var longStrs = [];
+for (var i = 0; i < 300; i++) {
+    longStr += (i % 10).toString();
+    longStrs.push(longStr);
+}
+
 var included = require("./included");
 included.onload();
 
