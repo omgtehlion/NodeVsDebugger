@@ -18,5 +18,7 @@ namespace NodeVsDebugger
         public const string DebuggerIdString = "guidNodeVsDebugger";
 
         public const string EngineName = "Node.js Debugger";
+
+        public const string AssemblyVersion = "0.1.2.0";
     }
 }
